@@ -1,0 +1,25 @@
+{
+  "name": "firebase-rules-testing",
+  "version": "0.1.0",
+  "description": "Dependency-free offline testing for firebase rules",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/janvogt/firebase-rules-testing.git"
+  },
+  "keywords": [
+    "firebase",
+    "bolt",
+    "rules",
+    "testing"
+  ],
+  "author": "Jan Vogt",
+  "license": "GPL-2.0",
+  "bugs": {
+    "url": "https://github.com/janvogt/firebase-rules-testing/issues"
+  },
+  "homepage": "https://github.com/janvogt/firebase-rules-testing#readme"
+}
