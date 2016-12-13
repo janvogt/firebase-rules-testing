@@ -74,7 +74,7 @@ class FirebaseRulesTest {
         }
     }
 
-    _evalRead (path, rules) {
+    _evalRead (path, rules, vars = {}) {
         if (path.length == 0) {
             const result = eval(rules['.read'] || 'false')
             return [result, {'': result}]
@@ -87,7 +87,22 @@ class FirebaseRulesTest {
                     result[''] = false
                 }
             }
-            const [overallResult, subResult] = this._evalRead(path.slice(1), rules[path[0]] || {})
+            var subRules
+            if (rules[path[0]]) {
+                subRules = rules[path[0]]
+            } else {
+                var pathVars = Object.keys(rules).filter(r => r.startsWith('$'))
+                if (pathVars.length > 0) {
+                    if (pathVars.length > 1) {
+                        throw new Error("Rules with sibling variables.")
+                    }
+                    subRules = rules[pathVars[0]]
+                    vars[pathVars[0]] = path[0]
+                } else {
+                    subRules = {}
+                }
+            }
+            const [overallResult, subResult] = this._evalRead(path.slice(1), subRules, vars)
             Object.keys(subResult).forEach(k => result[`${path[0]}/${k}`] = subResult[k])
             return [overallResult, result]
         }
