@@ -1,6 +1,6 @@
 class Auth {
     constructor (uid) {
-        this.uid = uid
+        this.uid = uid ? uid : null
     }
 }
 
@@ -11,17 +11,32 @@ class Snapshot {
     }
 }
 
+class Context {
+    constructor (auth, vars) {
+        this.auth = auth
+        this.vars = vars
+    }
+
+    evalRule(rule) {
+        var varNames = Object.keys(this.vars)
+        var vars = varNames.map(k => this.vars[k])
+        rule = `return (${rule})`
+        var ruleFn = new (Function.prototype.bind.apply(Function, [null, 'auth'].concat(varNames).concat(rule)))
+        return ruleFn.apply(undefined, [this.auth].concat(vars))
+    }
+}
+
 class FirebaseRulesTest {
     constructor (rules) {
         this.rules = rules.rules
-        this.auth = null
+        this.auth = new Auth()
         this.data = new Snapshot({})
         this.state = null
         this.results = []
     }
 
-    auth (uid) {
-        this.auth = uid ? new Auth(uid) : null
+    authenticate (uid) {
+        this.auth = new Auth(uid)
         return this
     }
 
@@ -75,13 +90,14 @@ class FirebaseRulesTest {
     }
 
     _evalRead (path, rules, vars = {}) {
+        var context = new Context(this.auth, vars)
         if (path.length == 0) {
-            const result = eval(rules['.read'] || 'false')
+            const result = context.evalRule(rules['.read']) || false
             return [result, {'': result}]
         } else {
             var result = {}
             if (rules['.read']) {
-                if (eval(rules['.read'])) {
+                if (context.evalRule(rules['.read'])) {
                     return [true, {'': true}]
                 } else {
                     result[''] = false

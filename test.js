@@ -1,7 +1,7 @@
-const rules = require('./index.js')
+const Rules = require('./index.js')
 
 try {
-    new rules({
+    new Rules({
         'rules': {
             'a': {
                 '.read': 'true'
@@ -13,7 +13,10 @@ try {
             },
             'variable': {
                 '$var': {
-                    '.read': 'true'
+                    '.read': 'auth.uid === $var',
+                    'a': {
+                        '.read': 'true'
+                    }
                 }
             }
         }
@@ -28,8 +31,13 @@ try {
     .deny('parents of readable nodes should not be readable')
     .read('c/d')
     .allow('deeper paths should be readable if allowed')
-    .read('variable/value')
+    .read('variable/value/a')
     .allow('paths with variables should be handled')
+    .authenticate('useruid')
+    .read('/variable/useruid/')
+    .allow('should be able to read as correct user')
+    .read('/variable/otheruid')
+    .deny('other node should not be readable')
     .stats()
 } catch (e) {
     console.log(`ERROR: Test throws error: '${e}'`)
