@@ -41,6 +41,21 @@ try {
                         '.read': 'root.child(\'d\').child(\'obj/b\').val() === false'
                     }
                 }
+            },
+            'e': {
+                '.write': 'false',
+                'f': {
+                    '.write': 'auth.uid != null',
+                    '.validate': 'newData.hasChildren([\'g\', \'j\']) && newData.child(\'g\').hasChildren([\'h\', \'i\'])',
+                    'j': {
+                        '.validate': '!data.exists() && newData.exists() && newData.isString()'
+                    },
+                    'g': {
+                        'h': {
+                            '.validate': 'newData.parent().child(\'h\').val() === newData.val()'
+                        }
+                    }
+                }
             }
         }
     })
@@ -86,6 +101,42 @@ try {
     .allow('should be able to read data with existing siblings')
     .read('d/obj/b')
     .allow('should be able to read data with correct value')
+    .set('e', {
+        'f': {
+            'g': {
+                'h': true,
+                'i': false
+            },
+            'j': 'hallo'
+        }
+    })
+    .deny('should not allow writing to /e')
+    .set('e/f', {
+        'g': {
+            'h': true,
+            'i': false
+        },
+        'j': 'hallo'
+    })
+    .allow('should be allowed to write to /e/f')
+    .set('e/f', {
+        'g': {
+            'h': true,
+            'i': false
+        },
+        'j': 3
+    })
+    .deny('should not be able to write a wrong value.')
+    .update('e,f', {
+        'g/h': 1,
+        'g/i': 2
+    })
+    .deny('should not be able to set wrong data')
+    .update('e,f', {
+        'g/h': 2,
+        'g/i': 2
+    })
+    .deny('should be able to set correct data')
     .stats()
 } catch (e) {
     console.log(`ERROR: Test throws error: '${e}'`)

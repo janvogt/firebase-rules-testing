@@ -12,14 +12,14 @@ class Snapshot {
 
     child (path) {
         const segments = pathSegments(path)
-        const childSnapshot = this._copy()
+        const childSnapshot = this.copy()
         childSnapshot.path = this.path.concat(segments)
         // console.log(JSON.stringify(childSnapshot));
         return childSnapshot
     }
 
     parent() {
-        const parentSnapshot = this._copy()
+        const parentSnapshot = this.copy()
         parentSnapshot.path = this.path.slice(0, -1)
         return parentSnapshot
     }
@@ -59,11 +59,13 @@ class Snapshot {
     }
 
     _val() {
-        return this.path.reduce((prev, next) => typeof prev === 'object' ? prev[next] : null, this.data)
+        // console.log(this);
+        // console.log(this.path.reduce((prev, next) => typeof prev === 'object' && prev ? prev[next] : null, this.data));
+        return this.path.reduce((prev, next) => typeof prev === 'object' && prev ? prev[next] : null, this.data)
     }
 
-    _copy() {
-        return new Snapshot(deepAssign({}, this.data))
+    copy(changes = []) {
+        return new Snapshot(deepAssign.apply(null, [{}, this.data].concat(changes)))
     }
 }
 
@@ -84,12 +86,8 @@ function deepAssign () {
 
 function readResults(rules, path, auth, dataSnapshot) {
     var segments = pathSegments(path)
-    const pathTree = segments.reverse().reduce((prev, next) => {
-        return {
-            [next]: prev
-        }
-    }, {})
-    const results = recurseEval(rules, '.read', pathTree, path => {
+    const tree = pathTree(segments)
+    const results = recurseEval(rules, '.read', tree, path => {
         return {
             auth: auth,
             root: dataSnapshot,
@@ -103,6 +101,16 @@ function readResults(rules, path, auth, dataSnapshot) {
     }
 }
 
+function pathTree(segments, value = {}) {
+    const s = segments.concat([])
+    // console.log(s)
+    return s.reverse().reduce((prev, next) => {
+        return {
+            [next]: prev
+        }
+    }, value)
+}
+
 function pathSegments(path) {
     var segments = path.split('/')
     if (segments[segments.length-1] == '') {
@@ -114,8 +122,37 @@ function pathSegments(path) {
     return segments
 }
 
-function recurseEval(rules, ruleType, pathTree, contextFn, path = '') {
-    // console.log("Recurse call", rules, ruleType, pathTree, contextFn, path);
+function writeResults(rules, auth, dataSnapshot, changes) {
+    // console.log('IN');
+    const changePaths = Object.keys(changes)
+    // console.log(changes);
+    const writePathTrees = mapObject(changes, (k, v) => [k, pathTree(pathSegments(k))])
+    // console.log(writePathTrees);
+    const fullTree = deepAssign.apply(null, changePaths.map(p => pathTree(pathSegments(p), changes[p])))
+    const newDataSnapshot = dataSnapshot.copy(fullTree)
+    const contextFn = path => {
+        return {
+            auth: auth,
+            root: dataSnapshot,
+            data: dataSnapshot.child(path),
+            newData: newDataSnapshot.child(path)
+        }
+    }
+    // console.log(changePaths, writePathTrees, fullTree, newDataSnapshot);
+    const writeResults = mapObject(writePathTrees, (k, tree) => [k, recurseEval(rules, '.write', tree, contextFn)])
+    const validateResults = recurseEval(rules, '.validate', fullTree, contextFn)
+    return {
+        allowed: Object.keys(writeResults).every(p => writeResults[p].some(res => res.result)) && validateResults.every(res => res.result),
+        details: {
+            write: writeResults,
+            validate: validateResults
+        },
+        method: 'write'
+    }
+}
+
+function recurseEval(rules, ruleType, tree, contextFn, path = '') {
+    // console.log("Recurse call", rules, ruleType, tree, contextFn, path);
     var results = []
     if (rules[ruleType]) {
         results.push({
@@ -130,15 +167,19 @@ function recurseEval(rules, ruleType, pathTree, contextFn, path = '') {
         throw new Error(`Sibling wildcard rules: ${JSON.stringify(wildcards)}`)
     }
     const wildcard = wildcards.length > 0 ? wildcards[0] : null
-    Object.keys(pathTree).forEach(k => {
+    Object.keys(tree).forEach(k => {
+        // console.log(k);
+        // console.log(rules, tree);
         if (rules[k]) {
-            results = results.concat(recurseEval(rules[k], ruleType, pathTree[k], contextFn, `${path}/${k}`).map(res => {
+            // console.log(rules[k]);;
+            results = results.concat(recurseEval(rules[k], ruleType, tree[k], contextFn, `${path}/${k}`).map(res => {
+                // console.log(res);
                 res.path = `${k}/${res.path}`
                 return res
             }))
         } else if (wildcard) {
             // console.log("WIldcard", wildcard);
-            results = results.concat(recurseEval(rules[wildcard], ruleType, pathTree[k], path => Object.assign({
+            results = results.concat(recurseEval(rules[wildcard], ruleType, tree[k], path => Object.assign({
                 [wildcard]: k
             }, contextFn(path)), `${path}/${k}`).map(res => {
                 // console.log("result", res);
@@ -162,15 +203,12 @@ function executeRule (rule, context) {
     return ruleFn.apply(null, vars)
 }
 
-// function prefixObject(prefix, obj) {
-//     return mapObject(obj, (k, v) => [`${prefix}/${k}`, v])
-// }
-
-// function mapObject (obj, transform) {
-//     return Object.keys(obj).map(k => transform(k, obj[k])).reduce((prev, next) => {
-//         prev[next[0]] = next[1]
-//     }, {})
-// }
+function mapObject (obj, transform) {
+    return Object.keys(obj).map(k => transform(k, obj[k])).reduce((prev, next) => {
+        prev[next[0]] = next[1]
+        return prev
+    }, {})
+}
 
 class FirebaseRulesTest {
     constructor (rules) {
@@ -197,6 +235,19 @@ class FirebaseRulesTest {
         return this
     }
 
+    set (path, value) {
+        this.state = writeResults(this.rules, this.auth, this.data, {
+            [path]: value
+        })
+        return this
+    }
+
+    update (path, changes) {
+        const segments = pathSegments(path)
+        this.state = writeResults(this.rules, this.auth, this.data, mapObject(changes, (k, v) => [segments.concat(pathSegments(k)).join('/'), v]))
+        return this
+    }
+
     allow (msg) {
         this._ensureResult()
         return this._check(this.state.allowed, 'allowed', msg)
@@ -213,7 +264,7 @@ class FirebaseRulesTest {
         } else {
             this.results.push(true)
         }
-        this.result == null
+        this.state = null
         return this
     }
 
@@ -233,41 +284,6 @@ class FirebaseRulesTest {
     _ensureResult () {
         if (!this.state) {
             throw new Error("No current result.")
-        }
-    }
-
-    _evalRead (path, rules, vars = {}) {
-        var context = new Context(this.auth, vars)
-        if (path.length == 0) {
-            const result = context.evalRule(rules['.read']) || false
-            return [result, {'': result}]
-        } else {
-            var result = {}
-            if (rules['.read']) {
-                if (context.evalRule(rules['.read'])) {
-                    return [true, {'': true}]
-                } else {
-                    result[''] = false
-                }
-            }
-            var subRules
-            if (rules[path[0]]) {
-                subRules = rules[path[0]]
-            } else {
-                var pathVars = Object.keys(rules).filter(r => r.startsWith('$'))
-                if (pathVars.length > 0) {
-                    if (pathVars.length > 1) {
-                        throw new Error("Rules with sibling variables.")
-                    }
-                    subRules = rules[pathVars[0]]
-                    vars[pathVars[0]] = path[0]
-                } else {
-                    subRules = {}
-                }
-            }
-            const [overallResult, subResult] = this._evalRead(path.slice(1), subRules, vars)
-            Object.keys(subResult).forEach(k => result[`${path[0]}/${k}`] = subResult[k])
-            return [overallResult, result]
         }
     }
 }

@@ -5,4 +5,4 @@
 
 ## What it is not:
 - Syntax checker (typos in rules, illeagal/unsupported functionality in rules)
-- 
+- Request checker (invalid requests => undefined behavior)
