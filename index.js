@@ -170,12 +170,20 @@ function serverValues (data, timestamp) {
 function recurseEval(rules, ruleType, tree, contextFn, path = '') {
     // console.log("Recurse call", rules, ruleType, tree, contextFn, path);
     var results = []
+    var err, result
+    try {
+        result = executeRule(rules[ruleType], contextFn(path))
+    } catch (e) {
+        err = e.toString()
+        result = false
+    }
     if (rules[ruleType]) {
         results.push({
             type: ruleType,
             path: '',
             variables: {},
-            result: executeRule(rules[ruleType], contextFn(path))
+            result: result,
+            error: err
         })
     }
     const wildcards = Object.keys(rules).filter(r => r.startsWith('$'))

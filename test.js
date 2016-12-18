@@ -75,6 +75,9 @@ try {
                     '.write': 'newData.isNumber()',
                     '.validate': 'newData.val() === now'
                 }
+            },
+            'shouldFail': {
+                '.write': 'newData.child().val() === null'
             }
         }
     })
@@ -169,6 +172,10 @@ try {
         }
     })
     .allow('server value should be recognized in multipath update')
+    .update('shouldFail', {
+        'shouldFail/test': 'abc'
+    })
+    .deny('exceptions should fail nicely')
     .stats()
 } catch (e) {
     console.log(`ERROR: Test throws error: '${e}'`)
