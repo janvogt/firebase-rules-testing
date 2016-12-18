@@ -302,7 +302,7 @@ class FirebaseRulesTest {
         } else {
             console.log(`SUCCESS: ran ${this.results.length}/${this.results.length} tests successfully.`)
         }
-
+        return this.results.length - successCount
     }
 
     _ensureResult () {
