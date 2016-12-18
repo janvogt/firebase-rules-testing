@@ -1,3 +1,11 @@
+String.prototype.contains = function(str) { return this.includes(str) }
+String.prototype.beginsWith = function(str) { return this.startsWith(str) }
+// String.prototype.endsWith
+// String.prototype.replace
+// String.prototype.toLowerCase
+// String.prototype.toUpperCase
+String.prototype.matches = function(expr) { return expr.test(this) }
+
 class Auth {
     constructor (uid) {
         this.uid = uid ? uid : null

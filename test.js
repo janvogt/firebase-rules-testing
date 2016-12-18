@@ -56,6 +56,14 @@ try {
                         }
                     }
                 }
+            },
+            'string': {
+                '.write': 'newData.isString()',
+                '.validate': 'newData.val().length === 7 && newData.val().contains(\'ab\') &&' +
+                             'newData.val().beginsWith(\'cab\') && newData.val().endsWith(\'Art\') &&' +
+                             'newData.val().replace(\'5\', \'6\') === \'cab6Art\' &&' +
+                             'newData.val().toLowerCase() === \'cab5art\' &&' +
+                             'newData.val().toUpperCase().toLowerCase() == \'cab5art\''
             }
         }
     })
@@ -137,6 +145,8 @@ try {
         'g/i': 2
     })
     .deny('should be able to set correct data')
+    .set('string/', 'cab5Art')
+    .allow('All string methods should be availiable.')
     .stats()
 } catch (e) {
     console.log(`ERROR: Test throws error: '${e}'`)
