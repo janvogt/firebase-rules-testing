@@ -175,7 +175,7 @@ try {
     .update('shouldFail', {
         'shouldFail/test': 'abc'
     })
-    .deny('exceptions should fail nicely')
+    .allow('exceptions should fail nicely')
     .stats()
 } catch (e) {
     console.log(`ERROR: Test throws error: '${e}'`)

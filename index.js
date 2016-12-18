@@ -174,7 +174,7 @@ function recurseEval(rules, ruleType, tree, contextFn, path = '') {
     try {
         result = executeRule(rules[ruleType], contextFn(path))
     } catch (e) {
-        err = e.toString()
+        err = `${e.toString()}\n${e.stack}`
         result = false
     }
     if (rules[ruleType]) {
