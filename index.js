@@ -93,13 +93,15 @@ function deepAssign () {
 }
 
 function readResults(rules, path, auth, dataSnapshot) {
+    const now = Date.now()
     var segments = pathSegments(path)
     const tree = pathTree(segments)
     const results = recurseEval(rules, '.read', tree, path => {
         return {
             auth: auth,
             root: dataSnapshot,
-            data: dataSnapshot.child(path)
+            data: dataSnapshot.child(path),
+            now: now
         }
     })
     return {
@@ -131,19 +133,21 @@ function pathSegments(path) {
 }
 
 function writeResults(rules, auth, dataSnapshot, changes) {
+    const now = Date.now()
     // console.log('IN');
     const changePaths = Object.keys(changes)
     // console.log(changes);
     const writePathTrees = mapObject(changes, (k, v) => [k, pathTree(pathSegments(k))])
     // console.log(writePathTrees);
-    const fullTree = deepAssign.apply(null, changePaths.map(p => pathTree(pathSegments(p), changes[p])))
+    const fullTree = serverValues(deepAssign.apply(null, changePaths.map(p => pathTree(pathSegments(p), changes[p]))), now)
     const newDataSnapshot = dataSnapshot.copy(fullTree)
     const contextFn = path => {
         return {
             auth: auth,
             root: dataSnapshot,
             data: dataSnapshot.child(path),
-            newData: newDataSnapshot.child(path)
+            newData: newDataSnapshot.child(path),
+            now: now
         }
     }
     // console.log(changePaths, writePathTrees, fullTree, newDataSnapshot);
@@ -157,6 +161,10 @@ function writeResults(rules, auth, dataSnapshot, changes) {
         },
         method: 'write'
     }
+}
+
+function serverValues (data, timestamp) {
+    return mapObject(data, (k, v) => [k, typeof v === 'object' ? v['.sv'] === 'timestamp' ? timestamp : serverValues(v, timestamp) : v])
 }
 
 function recurseEval(rules, ruleType, tree, contextFn, path = '') {

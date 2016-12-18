@@ -64,6 +64,17 @@ try {
                              'newData.val().replace(\'5\', \'6\') === \'cab6Art\' &&' +
                              'newData.val().toLowerCase() === \'cab5art\' &&' +
                              'newData.val().toUpperCase().toLowerCase() == \'cab5art\''
+            },
+            'serverValue': {
+                '.write': 'newData.isNumber()',
+                '.validate': 'newData.val() === now'
+            },
+            'deeper': {
+                '.write': 'newData.hasChildren([\'serverValue\'])',
+                'serverValue': {
+                    '.write': 'newData.isNumber()',
+                    '.validate': 'newData.val() === now'
+                }
             }
         }
     })
@@ -147,6 +158,17 @@ try {
     .deny('should be able to set correct data')
     .set('string/', 'cab5Art')
     .allow('All string methods should be availiable.')
+    .set('/serverValue', { ['.sv']: 'timestamp' })
+    .allow('server value should be recognized')
+    .set('/deeper', { 'serverValue': { ['.sv']: 'timestamp' }})
+    .allow('server value should be recognized deeper nested')
+    .update('/', {
+        'serverValue': { ['.sv']: 'timestamp' },
+        'deeper': {
+            'serverValue': { ['.sv']: 'timestamp' }
+        }
+    })
+    .allow('server value should be recognized in multipath update')
     .stats()
 } catch (e) {
     console.log(`ERROR: Test throws error: '${e}'`)

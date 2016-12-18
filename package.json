@@ -1,6 +1,6 @@
 {
   "name": "firebase-rules-testing",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Dependency-free offline testing for firebase rules",
   "main": "index.js",
   "scripts": {
