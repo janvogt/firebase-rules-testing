@@ -2,12 +2,13 @@
 
 **Easy testing** of **compiled** firebase rules with **descriptive feedback** on failures.
 
-(Firebase)[https://firebase.google.com] is a great Tool for easily getting your project up and running. But when you grow security gets more important. Firebase rules are flexible and allow a great extent of custom control. But they get quite fast very complex and difficult to understand. The (Bolt Language and Compiler)[https://github.com/firebase/bolt] goes a long way to simplify this complexity and make it manageable.
+[Firebase](https://firebase.google.com) is a great Tool for easily getting your project up and running. But when you grow security gets more important. Firebase rules are flexible and allow a great extent of custom control. But they get quite fast very complex and difficult to understand. The [Bolt Language and Compiler](https://github.com/firebase/bolt) goes a long way to simplify this complexity and make it manageable.
 
 That's fine until somthing you think should work doesn't. Do debug we still have to check the compiled rules:
 
 Their manual states:
 >We welcome experimentation, but ask that you hand-verify the resulting JSON output before using with production applications.
+https://github.com/firebase/bolt#-bolt-compiler
 
 So we're back to that complexity. We can use the firebase simulator for simple read and set requests. In real life multilocation updates are often used and enforced by rules. These can't be tested easily.
 
