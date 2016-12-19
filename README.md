@@ -2,6 +2,12 @@
 
 **Easy testing** of **compiled** firebase rules with **descriptive feedback** on failures.
 
+## Instalation
+
+    npm install firebase-rules-testing
+
+## Motivation
+
 [Firebase](https://firebase.google.com) is a great Tool for easily getting your project up and running. But when you grow security gets more important. Firebase rules are flexible and allow a great extent of custom control. But they get quite fast very complex and difficult to understand. The [Bolt Language and Compiler](https://github.com/firebase/bolt) goes a long way to simplify this complexity and make it manageable.
 
 That's fine until somthing you think should work doesn't. Do debug we still have to check the compiled rules:
@@ -15,15 +21,18 @@ So we're back to that complexity. We can use the firebase simulator for simple r
 This package aims to take **all your requests as they** are and test them automatically against **every rule set you generate**. Also you can test requests you don't want to work. In case of failure to meet your assumptions you get **detailed feedback** which **rule** (.read, .write or .validate), on which **path** suceeded and failed with which **environment** (like path variables). Don't spend time seraching for your mistakes use it for fixing them.
 
 ### What it is:
+
 - Detailed information for where a request fails.
 - Use it for Bolt compiled (syntactically valid) rules.
 - Tester for logical mistakes.
 
 ### What it is not:
+
 - Syntax checker (typos in rules, illeagal/unsupported functionality in rules)
 - Request checker (invalid requests => undefined behavior)
 
 ## Project status
+
 We use it in production for a small start-up app. It woks for us, but can be certainly improved - collaboration is more then welcome!
 
 ### What's there?
