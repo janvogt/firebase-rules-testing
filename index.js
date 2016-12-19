@@ -284,7 +284,7 @@ class FirebaseRulesTest {
 
     _check (success, verb, msg) {
         if (!success) {
-            this.results.push(`ERROR: Expected ${this.state.method} to be ${verb}. ${msg}\n${JSON.stringify(this.state)}`)
+            this.results.push(`ERROR: Expected ${this.state.method} to be ${verb}. ${msg}\n${JSON.stringify(this.state, null, 2)}`)
         } else {
             this.results.push(true)
         }
