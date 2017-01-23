@@ -258,6 +258,7 @@ class FirebaseRulesTest {
 
     updateFixture (modifications) {
         this.data = this.data.copy(modifications)
+        return this
     }
 
     read (path) {
