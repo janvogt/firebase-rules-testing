@@ -170,9 +170,10 @@ function serverValues (data, timestamp) {
 function recurseEval(rules, ruleType, tree, contextFn, path = '') {
     // console.log("Recurse call", rules, ruleType, tree, contextFn, path);
     var results = []
+    const context = contextFn(path)
     var err, result
     try {
-        result = executeRule(rules[ruleType], contextFn(path))
+        result = executeRule(rules[ruleType], context)
     } catch (e) {
         err = `${e.toString()}\n${e.stack}`
         result = false
@@ -181,6 +182,8 @@ function recurseEval(rules, ruleType, tree, contextFn, path = '') {
         results.push({
             type: ruleType,
             path: '',
+            data: context.data.val(),
+            newData: (context.newData || { val: () => undefined }).val(),
             variables: {},
             result: result,
             error: err
@@ -251,6 +254,10 @@ class FirebaseRulesTest {
     fixture (data) {
         this.data = new Snapshot(data || {})
         return this
+    }
+
+    updateFixture (modifications) {
+        this.data = this.data.copy(modifications)
     }
 
     read (path) {
