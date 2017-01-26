@@ -280,18 +280,34 @@ class FirebaseRulesTest {
         return this
     }
 
-    allow (msg) {
+    allow (msg, filterRelevant = true) {
         this._ensureResult()
-        return this._check(this.state.allowed, 'allowed', msg)
+        return this._check(this.state.allowed, 'allowed', msg, filterRelevant)
     }
 
-    deny (msg) {
+    deny (msg, filterRelevant = true) {
         this._ensureResult()
-        return this._check(!this.state.allowed, 'denied', msg)
+        return this._check(!this.state.allowed, 'denied', msg, filterRelevant)
     }
 
-    _check (success, verb, msg) {
+    _check (success, verb, msg, filterRelevant) {
         if (!success) {
+            if (filterRelevant) {
+                const ws = this.state.details.write
+                if (ws) {
+                    const newWs = {}
+                    Object.keys(ws).filter(p => this.state.allowed ? ws[p].any(r => r.result) : ws[p].every(r => !r.result) ).forEach(p => newWs[p] = ws[p])
+                    this.state.details.write = newWs
+                }
+                const vs = this.state.details.validate
+                if (vs) {
+                    this.state.details.validate = vs.filter(o => this.state.allowed ? false : !o.result)
+                }
+                const rs = this.state.details
+                if (Array.isArray(rs)) {
+                    this.state.details.read = rs.filter(o => this.state.allowed == o.result)
+                }
+            }
             this.results.push(`ERROR: Expected ${this.state.method} to be ${verb}. ${msg}\n${JSON.stringify(this.state, null, 2)}`)
         } else {
             this.results.push(true)
