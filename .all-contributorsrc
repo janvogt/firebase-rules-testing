@@ -1,0 +1,20 @@
+{
+  "projectName": "firebase-rules-testing",
+  "projectOwner": "janvogt",
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "contributors": [
+    {
+      "login": "mediavrog",
+      "name": "Maik Buchmeyer",
+      "avatar_url": "https://avatars.githubusercontent.com/u/160785?v=3",
+      "profile": "http://www.mediavrog.net",
+      "contributions": [
+        "code",
+      ]
+    }
+  ]
+}

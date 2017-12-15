@@ -49,4 +49,15 @@ We use it in production for a small start-up app. It woks for us, but can be cer
 - althoug it's quite fast (thanks modern JS engines), there are a lots of oportunities for performance improvements.
 - your idea?
 
+## Contributors
+
+Thanks goes to these wonderful people ([emoji key](https://github.com/kentcdodds/all-contributors#emoji-key)):
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+| [<img src="https://avatars.githubusercontent.com/u/160785?v=3" width="100px;"/><br /><sub>Maik Buchmeyer</sub>](http://www.mediavrog.net/)<br />[💻](https://github.com/janvogt/firebase-rules-testing/commits?author=mediavrog)|
+| :---: |
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+This project follows the [all-contributors](https://github.com/kentcdodds/all-contributors) specification.
+Contributions of any kind are welcome!
 
