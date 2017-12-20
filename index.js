@@ -308,16 +308,17 @@ class FirebaseRulesTest {
                     this.state.details.read = rs.filter(o => this.state.allowed == o.result)
                 }
             }
-            this.results.push(`ERROR: Expected ${this.state.method} to be ${verb}. ${msg}\n${JSON.stringify(this.state, null, 2)}`)
+            const errorMessage = `ERROR: Expected ${this.state.method} to be ${verb}. ${msg}`;
+            this.results.push(Object.assign({error: true, errorMessage}, this.state))
         } else {
-            this.results.push(true)
+            this.results.push({error: false})
         }
         this.state = null
         return this
     }
 
     stats () {
-        const successCount = this.results.filter(s => s === true).length
+        const successCount = this.results.filter(s => s.error === false).length
         if (successCount < this.results.length) {
             this.results.filter(s => typeof s === 'string').forEach(stat => {
                 console.log(`${stat}\n`)
